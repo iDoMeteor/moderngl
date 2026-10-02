@@ -617,7 +617,7 @@ def prog_invalid_varyings(ctx):
     return lambda: ctx.program(vertex_shader=VS, fragment_shader=FS, varyings=varyings), [varyings]
 
 
-@program_case(TypeError)
+@program_case()
 def prog_invalid_fragment_outputs(ctx):
     varyings = ("v",)
     return lambda: ctx.program(
