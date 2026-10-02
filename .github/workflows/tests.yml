@@ -33,9 +33,6 @@ jobs:
 
     env:
       LIBGL_ALWAYS_SOFTWARE: 1
-      # Neither moderngl.mgl nor glcontext declare free-threading support on main yet, so importing
-      # them would re-enable the GIL. Keep it disabled to run the tests without it.
-      PYTHON_GIL: 0
 
     steps:
       - uses: actions/checkout@v4
@@ -64,6 +61,19 @@ jobs:
 
       - name: build
         run: python setup.py build_ext --inplace
+
+      # Importing an extension module that does not declare free-threading support re-enables the
+      # GIL, and the tests would silently run with it. Check the modules the tests import.
+      - name: GIL
+        run: |
+          python - <<'EOF'
+          import importlib
+          import sys
+
+          for name in ['numpy', 'scipy.ndimage', 'OpenGL.GL', 'glcontext.egl', 'moderngl', 'moderngl.mgl']:
+              importlib.import_module(name)
+              assert not sys._is_gil_enabled(), 'importing ' + name + ' enabled the GIL'
+          EOF
 
       - name: test
         run: python -X dev -m pytest -s -vvv tests
