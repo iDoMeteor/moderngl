@@ -7190,15 +7190,6 @@ static PyObject * MGLVertexArray_transform(MGLVertexArray * self, PyObject * arg
         return 0;
     }
 
-    // The items are cast to MGLBuffer below. A released buffer's mglo is an InvalidObject.
-    Py_ssize_t num_output_items = PyList_GET_SIZE(outputs);
-    for (Py_ssize_t i = 0; i < num_output_items; ++i) {
-        if (!PyObject_TypeCheck(PyList_GET_ITEM(outputs, i), MGLBuffer_type)) {
-            MGLError_Set("invalid output buffer at index %d (released or not a buffer)", (int)i);
-            return 0;
-        }
-    }
-
     if (vertices < 0) {
         if (self->num_vertices < 0) {
             MGLError_Set("cannot detect the number of vertices");
@@ -7298,6 +7289,17 @@ static PyObject * MGLVertexArray_transform(MGLVertexArray * self, PyObject * arg
     }
 
     int num_outputs = (int)PyTuple_GET_SIZE(outputs_snapshot);
+
+    // The items are cast to MGLBuffer below. A released buffer's mglo is an InvalidObject.
+    // Checked on the snapshot, not on the list, which another thread may change meanwhile.
+    for (int i = 0; i < num_outputs; ++i) {
+        if (!PyObject_TypeCheck(PyTuple_GET_ITEM(outputs_snapshot, i), MGLBuffer_type)) {
+            Py_DECREF(outputs_snapshot);
+            MGLError_Set("invalid output buffer at index %d (released or not a buffer)", i);
+            return 0;
+        }
+    }
+
     for (int i = 0; i < num_outputs; ++i) {
         MGLBuffer * output = (MGLBuffer *)PyTuple_GET_ITEM(outputs_snapshot, i);
         gl.BindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, i, output->buffer_obj, buffer_offset, output->size - buffer_offset);
