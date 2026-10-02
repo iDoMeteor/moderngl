@@ -50,6 +50,9 @@ class Buffer:
         if not hasattr(self, "ctx"):
             return
 
+        if isinstance(self.mglo, InvalidObject):
+            return
+
         if self.ctx.gc_mode == "auto":
             self.release()
         elif self.ctx.gc_mode == "context_gc":
@@ -182,6 +185,9 @@ class ComputeShader:
         if not hasattr(self, "ctx"):
             return
 
+        if isinstance(self.mglo, InvalidObject):
+            return
+
         if self.ctx.gc_mode == "auto":
             self.release()
         elif self.ctx.gc_mode == "context_gc":
@@ -248,6 +254,9 @@ class Framebuffer:
 
     def __del__(self):
         if not hasattr(self, "ctx"):
+            return
+
+        if isinstance(self.mglo, InvalidObject):
             return
 
         # Don't delete default framebuffer or a reference
@@ -403,6 +412,9 @@ class Program:
         if not hasattr(self, "ctx"):
             return
 
+        if isinstance(self.mglo, InvalidObject):
+            return
+
         if self.ctx.gc_mode == "auto":
             self.release()
         elif self.ctx.gc_mode == "context_gc":
@@ -485,6 +497,9 @@ class Renderbuffer:
         if not hasattr(self, "ctx"):
             return
 
+        if isinstance(self.mglo, InvalidObject):
+            return
+
         if self.ctx.gc_mode == "auto":
             self.release()
         elif self.ctx.gc_mode == "context_gc":
@@ -557,6 +572,9 @@ class Sampler:
 
     def __del__(self):
         if not hasattr(self, "ctx"):
+            return
+
+        if isinstance(self.mglo, InvalidObject):
             return
 
         if self.ctx.gc_mode == "auto":
@@ -694,6 +712,9 @@ class Scope:
         if not hasattr(self, "ctx"):
             return
 
+        if isinstance(self.mglo, InvalidObject):
+            return
+
         if self.ctx.gc_mode == "auto":
             self.release()
         elif self.ctx.gc_mode == "context_gc":
@@ -726,6 +747,9 @@ class Texture:
 
     def __del__(self):
         if not hasattr(self, "ctx"):
+            return
+
+        if isinstance(self.mglo, InvalidObject):
             return
 
         if self.ctx.gc_mode == "auto":
@@ -880,6 +904,9 @@ class Texture3D:
         if not hasattr(self, "ctx"):
             return
 
+        if isinstance(self.mglo, InvalidObject):
+            return
+
         if self.ctx.gc_mode == "auto":
             self.release()
         elif self.ctx.gc_mode == "context_gc":
@@ -1020,6 +1047,9 @@ class TextureCube:
         if not hasattr(self, "ctx"):
             return
 
+        if isinstance(self.mglo, InvalidObject):
+            return
+
         if self.ctx.gc_mode == "auto":
             self.release()
         elif self.ctx.gc_mode == "context_gc":
@@ -1143,6 +1173,9 @@ class TextureArray:
 
     def __del__(self):
         if not hasattr(self, "ctx"):
+            return
+
+        if isinstance(self.mglo, InvalidObject):
             return
 
         if self.ctx.gc_mode == "auto":
@@ -1285,6 +1318,9 @@ class VertexArray:
 
     def __del__(self):
         if not hasattr(self, "ctx"):
+            return
+
+        if isinstance(self.mglo, InvalidObject):
             return
 
         if self.ctx.gc_mode == "auto":
