@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix the release of the memory view of a `Buffer` calling OpenGL after the buffer or its `Context` was released.
 - `Context.gc()` no longer raises `IndexError` when it is called from two threads at the same time.
 - Support free-threaded Python (3.13t, 3.14t): `moderngl.mgl` declares that it does not need the GIL. Calls on a `Context` and on the objects created from it are serialized by a lock of the context, contexts on different threads run in parallel. See the new "Threads" page in the documentation.
+- Add `Query.release()`. The OpenGL query objects of a `Query` were never deleted.
+- Fix external textures (and external buffers, once they are flagged as external) never being freed: `release()` now only gives up the references the object holds, it does not delete the OpenGL object.
+- Fix memory leaks when a call fails: the argument parsers (viewports, scissors, color masks, filters, bindings, blend functions), `Context.framebuffer`, `Context.empty_framebuffer`, `Context.program`, `Context.vertex_array`, `Context.scope`, `Context.buffer` and the texture constructors, `Buffer.read_chunks_into`, `Buffer.clear`, and `create_context` leaked references, Python objects, the half built object and OpenGL objects.
+- Fix memory leaks on success: `Context.program` (the varyings), `Context.vertex_array` (the attributes), `create_context` (the names of the extensions and the address of every OpenGL function, a few hundred objects per context).
 
 ## [5.10.0](https://github.com/moderngl/moderngl/compare/5.9.0...5.10.0)
 
