@@ -6,6 +6,15 @@
 
 #define MGLError_Set(...) PyErr_Format(moderngl_error, __VA_ARGS__)
 
+// A getset setter is called with value == NULL for `del obj.attr`.
+#define MGL_REJECT_DELETE(value) \
+    do { \
+        if (!(value)) { \
+            PyErr_SetString(PyExc_AttributeError, "cannot delete attribute"); \
+            return -1; \
+        } \
+    } while (0)
+
 #define MGL_MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MGL_MIN(a, b) (((a) < (b)) ? (a) : (b))
 
@@ -2111,6 +2120,7 @@ static PyObject * MGLFramebuffer_get_viewport(MGLFramebuffer * self, void * clos
 }
 
 static int MGLFramebuffer_set_viewport(MGLFramebuffer * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (context_released(self->context)) {
         return -1;
     }
@@ -2141,6 +2151,7 @@ static PyObject * MGLFramebuffer_get_scissor(MGLFramebuffer * self, void * closu
 }
 
 static int MGLFramebuffer_set_scissor(MGLFramebuffer * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (context_released(self->context)) {
         return -1;
     }
@@ -2220,6 +2231,7 @@ static int parse_mask(PyObject * arg, char * value) {
 }
 
 static int MGLFramebuffer_set_color_mask(MGLFramebuffer * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (context_released(self->context)) {
         return -1;
     }
@@ -2270,6 +2282,7 @@ static PyObject * MGLFramebuffer_get_depth_mask(MGLFramebuffer * self, void * cl
 }
 
 static int MGLFramebuffer_set_depth_mask(MGLFramebuffer * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (context_released(self->context)) {
         return -1;
     }
@@ -3191,6 +3204,7 @@ static PyObject * MGLSampler_get_repeat_x(MGLSampler * self, void * closure) {
 }
 
 static int MGLSampler_set_repeat_x(MGLSampler * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     const GLMethods & gl = self->context->gl;
 
     if (value == Py_True) {
@@ -3212,6 +3226,7 @@ static PyObject * MGLSampler_get_repeat_y(MGLSampler * self, void * closure) {
 }
 
 static int MGLSampler_set_repeat_y(MGLSampler * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     const GLMethods & gl = self->context->gl;
 
     if (value == Py_True) {
@@ -3233,6 +3248,7 @@ static PyObject * MGLSampler_get_repeat_z(MGLSampler * self, void * closure) {
 }
 
 static int MGLSampler_set_repeat_z(MGLSampler * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     const GLMethods & gl = self->context->gl;
 
     if (value == Py_True) {
@@ -3273,6 +3289,7 @@ static int parse_filter(PyObject * arg, int * min_filter_value, int * mag_filter
 }
 
 static int MGLSampler_set_filter(MGLSampler * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (!parse_filter(value, &self->min_filter, &self->mag_filter)) {
         MGLError_Set("invalid filter");
         return -1;
@@ -3289,6 +3306,7 @@ static PyObject * MGLSampler_get_compare_func(MGLSampler * self, void * closure)
 }
 
 static int MGLSampler_set_compare_func(MGLSampler * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     const char * func = PyUnicode_AsUTF8(value);
     if (!func) {
         MGLError_Set("invalid compare function");
@@ -3313,6 +3331,7 @@ static PyObject * MGLSampler_get_anisotropy(MGLSampler * self, void * closure) {
 }
 
 static int MGLSampler_set_anisotropy(MGLSampler * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (self->context->max_anisotropy == 0) return 0;
     self->anisotropy = (float)MGL_MIN(MGL_MAX(PyFloat_AsDouble(value), 1.0), self->context->max_anisotropy);
 
@@ -3350,6 +3369,7 @@ static int parse_color(PyObject * arg, float * value) {
 }
 
 static int MGLSampler_set_border_color(MGLSampler * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (!parse_color(value, self->border_color)) {
         MGLError_Set("invalid border color");
         return -1;
@@ -3369,6 +3389,7 @@ static PyObject * MGLSampler_get_min_lod(MGLSampler * self, void * closure) {
 }
 
 static int MGLSampler_set_min_lod(MGLSampler * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     self->min_lod = (float)PyFloat_AsDouble(value);
 
     const GLMethods & gl = self->context->gl;
@@ -3382,6 +3403,7 @@ static PyObject * MGLSampler_get_max_lod(MGLSampler * self, void * closure) {
 }
 
 static int MGLSampler_set_max_lod(MGLSampler * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     self->max_lod = (float)PyFloat_AsDouble(value);
 
     const GLMethods & gl = self->context->gl;
@@ -4609,6 +4631,7 @@ static PyObject * MGLTexture_get_repeat_x(MGLTexture * self, void * closure) {
 }
 
 static int MGLTexture_set_repeat_x(MGLTexture * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     int texture_target = self->samples ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
 
     const GLMethods & gl = self->context->gl;
@@ -4635,6 +4658,7 @@ static PyObject * MGLTexture_get_repeat_y(MGLTexture * self, void * closure) {
 }
 
 static int MGLTexture_set_repeat_y(MGLTexture * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     int texture_target = self->samples ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
 
     const GLMethods & gl = self->context->gl;
@@ -4661,6 +4685,7 @@ static PyObject * MGLTexture_get_filter(MGLTexture * self, void * closure) {
 }
 
 static int MGLTexture_set_filter(MGLTexture * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (!parse_filter(value, &self->min_filter, &self->mag_filter)) {
         MGLError_Set("invalid filter");
         return -1;
@@ -4714,6 +4739,7 @@ static PyObject * MGLTexture_get_swizzle(MGLTexture * self, void * closure) {
 }
 
 static int MGLTexture_set_swizzle(MGLTexture * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     const char * swizzle = PyUnicode_AsUTF8(value);
 
     if (self->depth) {
@@ -4773,6 +4799,7 @@ static PyObject * MGLTexture_get_compare_func(MGLTexture * self, void * closure)
 }
 
 static int MGLTexture_set_compare_func(MGLTexture * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (!self->depth) {
         MGLError_Set("only depth textures have compare_func");
         return -1;
@@ -4805,6 +4832,7 @@ static PyObject * MGLTexture_get_anisotropy(MGLTexture * self, void * closure) {
 }
 
 static int MGLTexture_set_anisotropy(MGLTexture * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (self->context->max_anisotropy == 0) return 0;
     self->anisotropy = (float)MGL_MIN(MGL_MAX(PyFloat_AsDouble(value), 1.0), self->context->max_anisotropy);
     int texture_target = self->samples ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
@@ -5284,6 +5312,7 @@ static PyObject * MGLTexture3D_get_repeat_x(MGLTexture3D * self, void * closure)
 }
 
 static int MGLTexture3D_set_repeat_x(MGLTexture3D * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
 
     const GLMethods & gl = self->context->gl;
 
@@ -5309,6 +5338,7 @@ static PyObject * MGLTexture3D_get_repeat_y(MGLTexture3D * self, void * closure)
 }
 
 static int MGLTexture3D_set_repeat_y(MGLTexture3D * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
 
     const GLMethods & gl = self->context->gl;
 
@@ -5334,6 +5364,7 @@ static PyObject * MGLTexture3D_get_repeat_z(MGLTexture3D * self, void * closure)
 }
 
 static int MGLTexture3D_set_repeat_z(MGLTexture3D * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
 
     const GLMethods & gl = self->context->gl;
 
@@ -5359,6 +5390,7 @@ static PyObject * MGLTexture3D_get_filter(MGLTexture3D * self, void * closure) {
 }
 
 static int MGLTexture3D_set_filter(MGLTexture3D * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (!parse_filter(value, &self->min_filter, &self->mag_filter)) {
         MGLError_Set("invalid filter");
         return -1;
@@ -5403,6 +5435,7 @@ static PyObject * MGLTexture3D_get_swizzle(MGLTexture3D * self, void * closure) 
 }
 
 static int MGLTexture3D_set_swizzle(MGLTexture3D * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     const char * swizzle = PyUnicode_AsUTF8(value);
 
     if (!swizzle[0]) {
@@ -5936,6 +5969,7 @@ static PyObject * MGLTextureArray_get_repeat_x(MGLTextureArray * self, void * cl
 }
 
 static int MGLTextureArray_set_repeat_x(MGLTextureArray * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
 
     const GLMethods & gl = self->context->gl;
 
@@ -5961,6 +5995,7 @@ static PyObject * MGLTextureArray_get_repeat_y(MGLTextureArray * self, void * cl
 }
 
 static int MGLTextureArray_set_repeat_y(MGLTextureArray * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
 
     const GLMethods & gl = self->context->gl;
 
@@ -5986,6 +6021,7 @@ static PyObject * MGLTextureArray_get_filter(MGLTextureArray * self, void * clos
 }
 
 static int MGLTextureArray_set_filter(MGLTextureArray * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (!parse_filter(value, &self->min_filter, &self->mag_filter)) {
         MGLError_Set("invalid filter");
         return -1;
@@ -6030,6 +6066,7 @@ static PyObject * MGLTextureArray_get_swizzle(MGLTextureArray * self, void * clo
 }
 
 static int MGLTextureArray_set_swizzle(MGLTextureArray * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     const char * swizzle = PyUnicode_AsUTF8(value);
 
     if (!swizzle[0]) {
@@ -6078,6 +6115,7 @@ static PyObject * MGLTextureArray_get_anisotropy(MGLTextureArray * self, void * 
 }
 
 static int MGLTextureArray_set_anisotropy(MGLTextureArray * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (self->context->max_anisotropy == 0) return 0;
     self->anisotropy = (float)MGL_MIN(MGL_MAX(PyFloat_AsDouble(value), 1.0), self->context->max_anisotropy);
 
@@ -6722,6 +6760,7 @@ static PyObject * MGLTextureCube_get_filter(MGLTextureCube * self, void * closur
 }
 
 static int MGLTextureCube_set_filter(MGLTextureCube * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (!parse_filter(value, &self->min_filter, &self->mag_filter)) {
         MGLError_Set("invalid filter");
         return -1;
@@ -6770,6 +6809,7 @@ static PyObject * MGLTextureCube_get_swizzle(MGLTextureCube * self, void * closu
 }
 
 static int MGLTextureCube_set_swizzle(MGLTextureCube * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     const char * swizzle = PyUnicode_AsUTF8(value);
 
     if (self->depth) {
@@ -6828,6 +6868,7 @@ static PyObject * MGLTextureCube_get_compare_func(MGLTextureCube * self, void * 
 }
 
 static int MGLTextureCube_set_compare_func(MGLTextureCube * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (!self->depth) {
         MGLError_Set("only depth textures have compare_func");
         return -1;
@@ -6859,6 +6900,7 @@ static PyObject * MGLTextureCube_get_anisotropy(MGLTextureCube * self, void * cl
 }
 
 static int MGLTextureCube_set_anisotropy(MGLTextureCube * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (self->context->max_anisotropy == 0) return 0;
     self->anisotropy = (float)MGL_MIN(MGL_MAX(PyFloat_AsDouble(value), 1.0), self->context->max_anisotropy);
 
@@ -7416,6 +7458,7 @@ static PyObject * MGLVertexArray_release(MGLVertexArray * self, PyObject * args)
 }
 
 static int MGLVertexArray_set_index_buffer(MGLVertexArray * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (Py_TYPE(value) != MGLBuffer_type) {
         MGLError_Set("the index_buffer must be a Buffer not %s", Py_TYPE(value)->tp_name);
         return -1;
@@ -7434,6 +7477,7 @@ static PyObject * MGLVertexArray_get_vertices(MGLVertexArray * self, void * clos
 }
 
 static int MGLVertexArray_set_vertices(MGLVertexArray * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     int vertices = PyLong_AsUnsignedLong(value);
 
     if (PyErr_Occurred()) {
@@ -7451,6 +7495,7 @@ static PyObject * MGLVertexArray_get_instances(MGLVertexArray * self, void * clo
 }
 
 static int MGLVertexArray_set_instances(MGLVertexArray * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     int instances = PyLong_AsUnsignedLong(value);
 
     if (PyErr_Occurred()) {
@@ -8429,6 +8474,7 @@ static PyObject * MGLContext_get_line_width(MGLContext * self, void * closure) {
 }
 
 static int MGLContext_set_line_width(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     float line_width = (float)PyFloat_AsDouble(value);
 
     if (PyErr_Occurred()) {
@@ -8449,6 +8495,7 @@ static PyObject * MGLContext_get_point_size(MGLContext * self, void * closure) {
 }
 
 static int MGLContext_set_point_size(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     float point_size = (float)PyFloat_AsDouble(value);
 
     if (PyErr_Occurred()) {
@@ -8498,6 +8545,7 @@ static PyObject * MGLContext_get_blend_func(MGLContext * self, void * closure) {
 }
 
 static int MGLContext_set_blend_func(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     int func[4] = {};
     if (!parse_blend_func(value, func)) {
         MGLError_Set("invalid blend func");
@@ -8551,6 +8599,7 @@ static PyObject * MGLContext_get_blend_equation(MGLContext * self, void * closur
 }
 
 static int MGLContext_set_blend_equation(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     int equation[2] = {};
     if (!parse_blend_equation(value, equation)) {
         MGLError_Set("invalid blend equation");
@@ -8566,6 +8615,7 @@ static PyObject * MGLContext_get_depth_func(MGLContext * self, void * closure) {
 }
 
 static int MGLContext_set_depth_func(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     const char * func = PyUnicode_AsUTF8(value);
 
     if (PyErr_Occurred()) {
@@ -8592,6 +8642,7 @@ static PyObject * MGLContext_get_depth_clamp_range(MGLContext * self, void * clo
 }
 
 static int MGLContext_set_depth_clamp_range(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (value == Py_None) {
         self->depth_clamp = false;
         self->depth_range[0] = 0.0;
@@ -8617,6 +8668,7 @@ static PyObject * MGLContext_get_multisample(MGLContext * self, void * closure) 
 }
 
 static int MGLContext_set_multisample(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (value == Py_True) {
         self->gl.Enable(GL_MULTISAMPLE);
         self->multisample = true;
@@ -8634,6 +8686,7 @@ static PyObject * MGLContext_get_provoking_vertex(MGLContext * self, void * clos
 }
 
 static int MGLContext_set_provoking_vertex(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     int provoking_vertex_value = PyLong_AsLong(value);
     const GLMethods & gl = self->gl;
 
@@ -8650,6 +8703,7 @@ static PyObject * MGLContext_get_polygon_offset(MGLContext * self, void * closur
 }
 
 static int MGLContext_set_polygon_offset(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (!PyTuple_CheckExact(value) || PyTuple_Size(value) != 2) {
         return -1;
     }
@@ -8682,6 +8736,7 @@ static PyObject * MGLContext_get_default_texture_unit(MGLContext * self, void * 
 }
 
 static int MGLContext_set_default_texture_unit(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     int default_texture_unit = PyLong_AsLong(value);
 
     if (PyErr_Occurred()) {
@@ -8747,6 +8802,7 @@ static PyObject * MGLContext_get_fbo(MGLContext * self, void * closure) {
 }
 
 static int MGLContext_set_fbo(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (context_released(self)) {
         return -1;
     }
@@ -8765,6 +8821,7 @@ static PyObject * MGLContext_get_wireframe(MGLContext * self, void * closure) {
 }
 
 static int MGLContext_set_wireframe(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     if (value == Py_True) {
         self->gl.PolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         self->wireframe = true;
@@ -8785,6 +8842,7 @@ static PyObject * MGLContext_get_front_face(MGLContext * self, void * closure) {
 }
 
 static int MGLContext_set_front_face(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     const char * str = PyUnicode_AsUTF8(value);
 
     if (!strcmp(str, "cw")) {
@@ -8813,6 +8871,7 @@ static PyObject * MGLContext_get_cull_face(MGLContext * self, void * closure) {
 }
 
 static int MGLContext_set_cull_face(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     const char * str = PyUnicode_AsUTF8(value);
 
     if (!strcmp(str, "front")) {
@@ -8839,6 +8898,7 @@ static PyObject * MGLContext_get_patch_vertices(MGLContext * self, void * closur
 }
 
 static int MGLContext_set_patch_vertices(MGLContext * self, PyObject * value, void * closure) {
+    MGL_REJECT_DELETE(value);
     int patch_vertices = PyLong_AsLong(value);
 
     if (PyErr_Occurred()) {
