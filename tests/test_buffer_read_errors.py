@@ -108,3 +108,15 @@ def test_read_chunks_into_errors(ctx):
         buf.read_chunks_into(bytearray(5), 2, 0, 3, 3)
 
     assert data == bytearray(b'.' * 6)
+
+
+def test_error_message_large_values(ctx):
+    # The message must not truncate Py_ssize_t values to int
+    buf = ctx.buffer(b'abc')
+    big = 2 ** 32 + 1
+
+    with pytest.raises(Exception, match="size = %d" % big):
+        buf.read(big)
+
+    with pytest.raises(Exception, match="offset = %d" % big):
+        buf.read(1, big)

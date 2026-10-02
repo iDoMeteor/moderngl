@@ -67,3 +67,15 @@ def test_write_chunks_invalid_count(ctx):
     assert buf.read() == b'123456789'
     buf.write_chunks(b'ab', 0, 3, 1)
     assert buf.read() == b'ab3456789'
+
+
+def test_error_message_large_values(ctx):
+    # The message must not truncate Py_ssize_t values to int
+    buf = ctx.buffer(b'abc')
+    big = 2 ** 32 + 1
+
+    with pytest.raises(Exception, match="offset = %d" % big):
+        buf.write(b'a', offset=big)
+
+    with pytest.raises(Exception, match="%d equal chunks" % big):
+        buf.write_chunks(b'abc', 0, 1, big)
