@@ -2444,30 +2444,6 @@ static PyObject * MGLContext_program(MGLContext * self, PyObject * args) {
         return 0;
     }
 
-    {
-        PyObject * key = NULL;
-        PyObject * value = NULL;
-        Py_ssize_t pos = 0;
-
-        while (PyDict_Next(fragment_outputs, &pos, &key, &value)) {
-            if (!PyUnicode_Check(key)) {
-                MGLError_Set("the fragment_outputs keys must be str not %s", Py_TYPE(key)->tp_name);
-                return NULL;
-            }
-
-            if (!PyUnicode_AsUTF8(key)) {
-                return NULL;
-            }
-
-            PyLong_AsLong(value);
-            if (PyErr_Occurred()) {
-                PyErr_Clear();
-                MGLError_Set("the fragment_outputs values must be int not %s", Py_TYPE(value)->tp_name);
-                return NULL;
-            }
-        }
-    }
-
     varyings_arg = PySequence_Tuple(varyings_arg);
     if (!varyings_arg) {
         PyErr_Clear();
@@ -2626,7 +2602,29 @@ static PyObject * MGLContext_program(MGLContext * self, PyObject * args) {
             PyObject * item = PyList_GET_ITEM(items, i);
             PyObject * key = PyTuple_GET_ITEM(item, 0);
             PyObject * value = PyTuple_GET_ITEM(item, 1);
-            gl.BindFragDataLocation(program_obj, PyLong_AsLong(value), PyUnicode_AsUTF8(key));
+
+            // Validated on the snapshot that is used below, the caller's dict may change in between
+            if (!PyUnicode_Check(key)) {
+                MGLError_Set("the fragment_outputs keys must be str not %s", Py_TYPE(key)->tp_name);
+                Py_DECREF(items);
+                return program_failed(self, program, NULL, program_obj, shader_objs, 0);
+            }
+
+            const char * name = PyUnicode_AsUTF8(key);
+            if (!name) {
+                Py_DECREF(items);
+                return program_failed(self, program, NULL, program_obj, shader_objs, 0);
+            }
+
+            long location = PyLong_AsLong(value);
+            if (location == -1 && PyErr_Occurred()) {
+                PyErr_Clear();
+                MGLError_Set("the fragment_outputs values must be int not %s", Py_TYPE(value)->tp_name);
+                Py_DECREF(items);
+                return program_failed(self, program, NULL, program_obj, shader_objs, 0);
+            }
+
+            gl.BindFragDataLocation(program_obj, location, name);
         }
         Py_DECREF(items);
     }
